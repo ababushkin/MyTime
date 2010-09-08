@@ -208,7 +208,8 @@ queue.current = function(){
 var MyTime = {
 	CONSTANTS: {
 		SUCCESS: 1,
-		FAIL: 2
+		FAIL: 2,
+		STATUS_LIVE: 16
 	},
 	GLOBALS: {
 	  currentRun: 0, /* automatically incremented by the queue so that we know how many times the tests have run */
@@ -555,74 +556,84 @@ $(document).ready(function(){
 	}, 20, null, "createLink()");	
 	
 	// Change asset status (Under Construction > Live)
+	// Only if available, otherwise this action will be skipped
 	queue(function(){
-		try {   
-			$.get("http://wcm.dhs.vic.gov.au", { a: MyTime.GLOBALS.createdID, status: "live" }, function(data){
-				MyTime.jobComplete(MyTime.CONSTANTS.SUCCESS);
-			});
+		try {
+		    if (typeof(setAssetStatus) != "undefined") {
+		        setAssetStatus(MyTime.GLOBALS.createdID, MyTime.CONSTANTS.STATUS_LIVE, false, "", function(data){
+		            if (data.search("successfully to Live") > -1) {
+		                MyTime.jobComplete(MyTime.CONSTANTS.SUCCESS);
+		            }
+		            else {
+		                MyTime.jobComplete(MyTime.CONSTANTS.FAIL, e.message);
+		            }
+		        });
+		    }
+		    else {
+		        MyTime.jobComplete(MyTime.CONSTANTS.SUCCESS);
+		    }
 		}
 		catch (e) {
 			MyTime.jobComplete(MyTime.CONSTANTS.FAIL, e.message);	
 		}
-	}, 30, null, "changeStatus()");
+	}, 30, null, "setAssetStatus()");
 	
 	/****
 		These calls will create load on the server but we cannot measure them because we save the results on the asset
 	****/
 	// First lets check that at least one metadata field has been defined for an action
 	// If it hasn't then these calls are useless and don't need to be run
-  var saveRequired = false;
-  for (var counter = 0; counter < MyTime.queue.length; counter++) {
-    if (MyTime.queue[counter]) {
-      saveRequired = true;
-      break;
+    var saveRequired = false;
+    for (var counter = 0; counter < MyTime.queue.length; counter++) {
+        if (MyTime.queue[counter]) {
+            saveRequired = true;
+            break;
+        }
     }
-  }
 	
-  if (saveRequired) {	
-  	queue(function(){
-  		jmx(MyTime.GLOBALS.createdID).getMetadata({
-  			success: function(data){
-  				MyTime.jobComplete(MyTime.CONSTANTS.SUCCESS);
-  			},
-  			error: function(){
-  				MyTime.jobComplete(MyTime.CONSTANTS.FAIL);
-  			}
-  		});		
-  	}, 0, null, "Save results - jmx().getMetadata()");
-	
-  	// send the performance figures to metadata values on the asset
-  	queue(function(){
-  		// all the performance values are saved to a unique metadata field
-  		for (var counter = 0; counter < MyTime.queue.length; counter++) {
-  			var job = MyTime.queue[counter];
-  			if (job.metadataFieldID) {
-  				var metadata = jmx(MyTime.GLOBALS.createdID).metadata(job.metadataFieldID);
-  				metadata.use_default = false;
-  				metadata.value = (job.endTime - job.startTime) / 1000;
-  			}
-  		}
-		
-  		jmx(MyTime.GLOBALS.createdID).saveMetadata({
-  			success: function(){
-  				MyTime.jobComplete(MyTime.CONSTANTS.SUCCESS);
-  			}
-  		});
+    if (saveRequired) {	
+        queue(function(){
+            jmx(MyTime.GLOBALS.createdID).getMetadata({
+                success: function(data){
+                    MyTime.jobComplete(MyTime.CONSTANTS.SUCCESS);
+                },
+                error: function(){
+                    MyTime.jobComplete(MyTime.CONSTANTS.FAIL);
+                }
+            });		
+        }, 0, null, "Save results - jmx().getMetadata()");
 
-  	}, 0, null, "Save results - jmx().saveMetadata()");
+  	    // send the performance figures to metadata values on the asset
+        queue(function(){
+            // all the performance values are saved to a unique metadata field
+            for (var counter = 0; counter < MyTime.queue.length; counter++) {
+                var job = MyTime.queue[counter];
+                if (job.metadataFieldID) {
+                    var metadata = jmx(MyTime.GLOBALS.createdID).metadata(job.metadataFieldID);
+                    metadata.use_default = false;
+                    metadata.value = (job.endTime - job.startTime) / 1000;
+                }
+            }
+
+            jmx(MyTime.GLOBALS.createdID).saveMetadata({
+                success: function(){
+                    MyTime.jobComplete(MyTime.CONSTANTS.SUCCESS);
+                }
+            });
+        }, 0, null, "Save results - jmx().saveMetadata()");
 	
-  	// release the final lock
-  	queue(function(){
-  		try {
-  			releaseLock(MyTime.GLOBALS.createdID, "metadata", function(data){
-  				MyTime.jobComplete(MyTime.CONSTANTS.SUCCESS);
-  			});
-  		}
-  		catch (e) {
-  			MyTime.jobComplete(MyTime.CONSTANTS.FAIL, e.message);			
-  		}
-  	}, 0, null, "Save results - releaseLock()");
-  }
+        // release the final lock
+        queue(function(){
+            try {
+                releaseLock(MyTime.GLOBALS.createdID, "metadata", function(data){
+                    MyTime.jobComplete(MyTime.CONSTANTS.SUCCESS);
+                });
+            }
+            catch (e) {
+                MyTime.jobComplete(MyTime.CONSTANTS.FAIL, e.message);			
+            }
+        }, 0, null, "Save results - releaseLock()");
+    }
 	
 	$("#run").attr("disabled", false).text("Run");
 	$("#run").bind("click", function(){
