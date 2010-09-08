@@ -508,8 +508,13 @@ $(document).ready(function(){
 	
 	// Save metadata
 	queue(function(){
-		setMetadata(MyTime.GLOBALS.createdID, "438854", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis nisl leo, condimentum a malesuada vitae, scelerisque quis ligula. Duis non libero nunc, eu mollis nulla.", function(){ 
-			MyTime.jobComplete(MyTime.CONSTANTS.SUCCESS);
+		setMetadata(MyTime.GLOBALS.createdID, "", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis nisl leo, condimentum a malesuada vitae, scelerisque quis ligula. Duis non libero nunc, eu mollis nulla.", function(data){ 
+			if (data.search("success") > -1) {
+			    MyTime.jobComplete(MyTime.CONSTANTS.SUCCESS);
+			}
+			else {
+			    MyTime.jobComplete(MyTime.CONSTANTS.FAIL);
+			}
 		}); 
 	}, 180, null, "setMetadata()");
 
