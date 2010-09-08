@@ -338,11 +338,11 @@ $(document).ready(function(){
 	
 	// no "Run" button has been coded into the Page, create one from scratch
 	if ($("#run").length == 0) {
-	    $("body").append("<button id='run'>Run tests</button>")
+		$("body").append("<button id='run'>Run tests</button>")
 	}
 	else {
-	    $("#run").attr("disabled", false);
-	    $("#run").val("Run tests");
+		$("#run").attr("disabled", false);
+		$("#run").val("Run tests");
 	}
 	
 	// create divs hold the progress and log information
@@ -352,11 +352,11 @@ $(document).ready(function(){
 	queue(function(){
 		try {
 			var parentID = MyTime.parentID;
-			
+
 			if (MyTime.randomize.enabled && MyTime.randomize.parentID.length > 0) {
 				parentID = MyTime.randomize.parentID[Math.floor(Math.random() * MyTime.randomize.parentID.length)];
 			}
-			
+
 			createAsset(parentID, "page_standard", assetName + " - " + Math.uuid(5), 1, "", -1, 0, 0, 0, "", function(data){
 				MyTime.GLOBALS.createdID = parseInt(data.id);
 				if (isNaN(MyTime.GLOBALS.createdID)) {
@@ -599,7 +599,7 @@ $(document).ready(function(){
 	// If it hasn't then these calls are useless and don't need to be run
 	var saveRequired = false;
 	for (var counter = 0; counter < MyTime.queue.length; counter++) {
-		if (MyTime.queue[counter]) {
+		if (MyTime.queue[counter].metadataFieldID) {
 			saveRequired = true;
 			break;
 		}
@@ -636,7 +636,7 @@ $(document).ready(function(){
 			});
 		}, 0, null, "Save results - jmx().saveMetadata()");
 	
-        // release the final lock
+		// release the final lock
 		queue(function(){
 			try {
 				releaseLock(MyTime.GLOBALS.createdID, "metadata", function(data){
@@ -647,7 +647,7 @@ $(document).ready(function(){
 				MyTime.jobComplete(MyTime.CONSTANTS.FAIL, e.message);			
 			}
 		}, 0, null, "Save results - releaseLock()");
-    }
+	}
 	
 	$("#run").attr("disabled", false).text("Run");
 	$("#run").bind("click", function(){
