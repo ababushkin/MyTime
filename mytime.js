@@ -60,9 +60,6 @@ queue.start = function(){
 		
 		// create div to monitor sleep time
 		$("body").append("<div id='sleepTimer' style='border: 1px solid black; width: 100px; height: 50px; text-align: center; vertical-align: middle; line-height: 50px; font-weight: bold; font-size: 27px; position: absolute; right: 10px; top: 10px;'></div>");
-		
-		// make the game visible + report log header
-		$("#reportLog, hr").show();
 	}
 };
 
@@ -229,8 +226,8 @@ var MyTime = {
 	logDebug: true, /* whether or not messages should be logged, helps when testing with sleepTime, this will default to true if debug mode is enabled */
 	debugSleepTime: 5, /* the sleep time between actions when debug mode is enabled */
 	randomize: { /* ensures that the assets and their create locations are randomized, this is especially useful when you have different types of triggers setup in different areas of your site(s) */
-		enabled: true,
-		sleepTimeRandom: true,
+		enabled: false,
+		sleepTimeRandom: false,
 		sleepTimeRandomMultiplier: 1.5,
 		parentID: [ ],
 		newLinkID: [ ]
@@ -259,11 +256,11 @@ var MyTime = {
 		var time = this.getTimestamp();
 		
 		if (!isNaN(timeTaken)) {
-			$("#debug").append("<li>" + time + " - " + message + " time: <span>" + timeTaken + " seconds</span></li>");
+			$("#log").append("<li>" + time + " - " + message + " time: <span>" + timeTaken + " seconds</span></li>");
 		}
 		else {
 			message = timeTaken;
-			$("#debug").append("<li>" + time + " - " + message + "</li>");
+			$("#log").append("<li>" + time + " - " + message + "</li>");
 		}
 	},
 	timeoutBegin: function(sleepTime){
@@ -338,6 +335,18 @@ $(document).ready(function(){
 	if (assetName.length == 0) {
 		assetName = "Unknown User";
 	}
+	
+	// no "Run" button has been coded into the Page, create one from scratch
+	if ($("#run").length == 0) {
+	    $("body").append("<button id='run'>Run tests</button>")
+	}
+	else {
+	    $("#run").attr("disabled", false);
+	    $("#run").val("Run tests");
+	}
+	
+	// create divs hold the progress and log information
+	$("body").append("<div id='progress'></div><div id='log'></div>");
 	
 	// Create asset
 	queue(function(){
