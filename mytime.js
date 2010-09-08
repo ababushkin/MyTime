@@ -370,7 +370,7 @@ $(document).ready(function(){
 		catch (e) {
 			MyTime.jobComplete(MyTime.CONSTANTS.FAIL, e.message);
 		}
-	}, 90, 442784, "createAsset()");
+	}, 90, null, "createAsset()");
 	
 	// Get children ()
 	queue(function(){
@@ -509,7 +509,7 @@ $(document).ready(function(){
 	// Save metadata
 	queue(function(){
 		setMetadata(MyTime.GLOBALS.createdID, "", "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis nisl leo, condimentum a malesuada vitae, scelerisque quis ligula. Duis non libero nunc, eu mollis nulla.", function(data){ 
-			if (data.search("success") > -1) {
+			if (typeof(data.success) != "undefined") {
 			    MyTime.jobComplete(MyTime.CONSTANTS.SUCCESS);
 			}
 			else {
@@ -575,7 +575,7 @@ $(document).ready(function(){
 		try {
 		    if (typeof(setAssetStatus) != "undefined") {
 		        setAssetStatus(MyTime.GLOBALS.createdID, MyTime.CONSTANTS.STATUS_LIVE, false, "", function(data){
-		            if (data.search("successfully to Live") > -1) {
+		            if (data[0].search("successfully to Live") > -1) {
 		                MyTime.jobComplete(MyTime.CONSTANTS.SUCCESS);
 		            }
 		            else {
