@@ -431,7 +431,7 @@ $(document).ready(function(){
 	// Preview contents
 	queue(function(){
 		try {
-			$.get("http://wcm.dhs.vic.gov.au/_nocache", { a: MyTime.GLOBALS.createdID }, function(data){
+			$.get(window.location.href + "/_nocache", { a: MyTime.GLOBALS.createdID }, function(data){
 				MyTime.jobComplete(MyTime.CONSTANTS.SUCCESS);
 			});
 		}
