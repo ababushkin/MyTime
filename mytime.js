@@ -306,7 +306,7 @@ $(document).ready(function(){
   
   // Acquire lock (metadata)
   queue(function(){
-    acquireLock("metadata", function(data){
+    acquireLock(MyTime.GLOBALS.createdID, "metadata", false, false, function(data){
       if (data[0].search("locks are now acquired") > -1) {
         MyTime.jobComplete(MyTime.CONSTANTS.SUCCESS);
       }
