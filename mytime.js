@@ -280,7 +280,7 @@ $(document).ready(function(){
     jmx(MyTime.GLOBALS.createdID).saveContents(function(data){
       MyTime.jobComplete(MyTime.CONSTANTS.SUCCESS);
     });
-  }, 180, MyTime.RESULTS.saveContents, "jmx().saveContents()");  
+  }, 180, MyTime.RESULTS.saveContents[1], "jmx().saveContents()");  
   
   // Release locks (contents)
   queue(function(){
