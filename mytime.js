@@ -13,16 +13,11 @@
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
-
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 var MyTime = {
-  jsAPIKey: null, /* int: can be found on the details screen of your JS API */
-  parentID: "", /* string: assets are created here */
-  newLinkID: null, /* int: assets are new linked here */
-  metadataFieldID: null, /* int: used for saving metadata */
   spinnerImageURL: null, /* optional, but if supplied the spinner will be displayed to the user instead of just having text */
   maxRuns: 2, /* the amount of times these tests should run */
   sleepTime: 15, /* the sleep time between each iteration (in seconds) */
@@ -32,7 +27,7 @@ var MyTime = {
   thinkTimeEnabled: false, /* determined whether think time should be used between actions. recommended to turn on if these tests are run with lots of concurrent users. */
   thinkTimeDefault: 5, /* the default time between actions */
   debug: false, /* enabling debug will create a consistent sleep time between actions */
-  logDebug: true, /* whether or not messages should be logged, helps when testing with sleepTime, this will default to true if debug mode is enabled */
+  logDebug: false, /* whether or not messages should be logged, helps when testing with sleepTime, this will default to true if debug mode is enabled */
   debugSleepTime: 5, 
   randomize: { /* ensures that the assets and their create locations are randomized, this is especially useful when you have different types of triggers setup in different areas of your site(s) */
     enabled: false,
@@ -149,7 +144,7 @@ var MyTime = {
 };
 
 $(document).ready(function(){
-  window.api_key = MyTime.jsAPIKey;
+  window.api_key = MyTime.CONFIG.jsAPIKey;
   var assetName = $("#username").text();
   
   if (assetName.length == 0) {
@@ -172,7 +167,7 @@ $(document).ready(function(){
   // Create asset
   queue(function(){
     try {
-      var parentID = MyTime.parentID;
+      var parentID = MyTime.CONFIG.parentID;
 
       if (MyTime.randomize.enabled && MyTime.randomize.parentID.length > 0) {
         parentID = MyTime.randomize.parentID[Math.floor(Math.random() * MyTime.randomize.parentID.length)];
@@ -191,12 +186,12 @@ $(document).ready(function(){
     catch (e) {
       MyTime.jobComplete(MyTime.CONSTANTS.FAIL, e.message);
     }
-  }, 90, null, "createAsset()");
+  }, 90, MyTime.RESULTS.createAsset, "createAsset()");
   
   // Get children ()
   queue(function(){
     try {
-      getChildren(MyTime.parentID, 0, function(data){
+      getChildren(MyTime.CONFIG.parentID, 0, function(data){
         if (data.length > 0 || typeof(data) == "object") {
           MyTime.jobComplete(MyTime.CONSTANTS.SUCCESS);
         }
@@ -208,10 +203,10 @@ $(document).ready(function(){
     catch (e) {
       MyTime.jobComplete(MyTime.CONSTANTS.FAIL, e.message);     
     }
-  }, 60, null, "getChildren()");  
+  }, 60, MyTime.RESULTS.getChildren[0], "getChildren()");  
     
   // Acquire lock (details)
-  // Using this legacy API due to the fact that Matrix's JS API doesn't work with "contents" or "details" screen locks
+  // Using this legacy API due to the fact that Matrix's JS API doesn't work with "content" or "details" screen locks
   queue(function(){
     jmx(MyTime.GLOBALS.createdID).acquireLock("details", function(data){
       if (data == "success") {                          
@@ -221,7 +216,7 @@ $(document).ready(function(){
         MyTime.jobComplete(MyTime.CONSTANTS.FAIL);
       }
     });
-  }, 60, null, "jmx().acquireLock(details)");
+  }, 60, MyTime.RESULTS.acquireLockDetails, "jmx().acquireLock(details)");
   
   // Get contents
   queue(function(){
@@ -237,7 +232,7 @@ $(document).ready(function(){
         }
       }
     });
-  }, 0, null, "jmx().getContents()");
+  }, 0, MyTime.RESULTS.getContents[0], "jmx().getContents()");
   
   // Save contents
   // TODO:
@@ -248,7 +243,7 @@ $(document).ready(function(){
     jmx(MyTime.GLOBALS.createdID).saveContents(function(data){
       MyTime.jobComplete(MyTime.CONSTANTS.SUCCESS);
     });
-  }, 180, null, "jmx().saveContents()");  
+  }, 180, MyTime.RESULTS.saveContents[0], "jmx().saveContents()");  
   
   // Preview contents
   queue(function(){
@@ -260,7 +255,7 @@ $(document).ready(function(){
     catch (e) {
       MyTime.jobComplete(MyTime.CONSTANTS.FAIL, e.message);
     }
-  }, 30, null, "Non API - previewContents()");
+  }, 30, MyTime.RESULTS.previewContents, "Non API - previewContents()");
 
   // Get contents
   queue(function(){
@@ -276,7 +271,7 @@ $(document).ready(function(){
         }
       }
     });
-  }, 60, null, "jmx().getContents()");
+  }, 60, MyTime.RESULTS.getContents[1], "jmx().getContents()");
 
   // Save contents
   queue(function(){
@@ -285,7 +280,7 @@ $(document).ready(function(){
     jmx(MyTime.GLOBALS.createdID).saveContents(function(data){
       MyTime.jobComplete(MyTime.CONSTANTS.SUCCESS);
     });
-  }, 180, null, "jmx().saveContents()");  
+  }, 180, MyTime.RESULTS.saveContents, "jmx().saveContents()");  
   
   // Release locks (contents)
   queue(function(){
@@ -302,7 +297,7 @@ $(document).ready(function(){
     catch (e) {
       MyTime.jobComplete(MyTime.CONSTANTS.FAIL, e.message);     
     }
-  }, 20, null, "releaseLock(content)"); 
+  }, 20, MyTime.RESULTS.releaseLockContents, "releaseLock(content)"); 
   
   // Acquire lock (metadata)
   queue(function(){
@@ -314,7 +309,7 @@ $(document).ready(function(){
         MyTime.jobComplete(MyTime.CONSTANTS.FAIL);
       }
     });
-  }, 60, null, "acquireLock(metadata)");
+  }, 60, MyTime.RESULTS.acquireLockMetadata, "acquireLock(metadata)");
   
   // Get metadata
   queue(function(){
@@ -326,11 +321,11 @@ $(document).ready(function(){
         MyTime.jobComplete(MyTime.CONSTANTS.FAIL);
       }
     });
-  }, 0, null, "jmx().getMetadata()");
+  }, 0, MyTime.RESULTS.getMetadata, "jmx().getMetadata()");
   
   // Save metadata
   queue(function(){
-    setMetadata(MyTime.GLOBALS.createdID, MyTime.metadataFieldID, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis nisl leo, condimentum a malesuada vitae, scelerisque quis ligula. Duis non libero nunc, eu mollis nulla.", function(data){ 
+    setMetadata(MyTime.GLOBALS.createdID, MyTime.CONFIG.metadataFieldID, "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis nisl leo, condimentum a malesuada vitae, scelerisque quis ligula. Duis non libero nunc, eu mollis nulla.", function(data){ 
       if (typeof(data.success) != "undefined") {
           MyTime.jobComplete(MyTime.CONSTANTS.SUCCESS);
       }
@@ -338,7 +333,7 @@ $(document).ready(function(){
           MyTime.jobComplete(MyTime.CONSTANTS.FAIL);
       }
     }); 
-  }, 180, null, "setMetadata()");
+  }, 180, MyTime.RESULTS.saveMetadata, "setMetadata()");
 
   // Release locks (metadata)
   queue(function(){
@@ -355,12 +350,12 @@ $(document).ready(function(){
     catch (e) {
       MyTime.jobComplete(MyTime.CONSTANTS.FAIL, e.message);
     }
-  }, 20, null, "releaseLock(metadata)");  
+  }, 20, MyTime.RESULTS.releaseLockMetadata, "releaseLock(metadata)");  
   
   // Get children () - in the new link location
   queue(function(){
     try {
-      getChildren(MyTime.newLinkID, 0, function(data){
+      getChildren(MyTime.CONFIG.newLinkID, 0, function(data){
         if (data.length > 0 || typeof(data) == "object") {
           MyTime.jobComplete(MyTime.CONSTANTS.SUCCESS);
         }
@@ -372,12 +367,12 @@ $(document).ready(function(){
     catch (e) {
       MyTime.jobComplete(MyTime.CONSTANTS.FAIL, e.message); 
     }
-  }, 30, null, "getChildren()");
+  }, 30, MyTime.RESULTS.getChildren[1], "getChildren()");
   
   // Create new link
   queue(function(){
     try {
-      createLink(MyTime.newLinkID, MyTime.GLOBALS.createdID, 1, "", -1, 0, 0, function(data){
+      createLink(MyTime.CONFIG.newLinkID, MyTime.GLOBALS.createdID, 1, "", -1, 0, 0, function(data){
         if (data.length > 0 || typeof(data) == "object") {
           MyTime.jobComplete(MyTime.CONSTANTS.SUCCESS);       
         }
@@ -389,7 +384,7 @@ $(document).ready(function(){
     catch (e) {
       MyTime.jobComplete(MyTime.CONSTANTS.FAIL, e.message);
     }
-  }, 20, null, "createLink()"); 
+  }, 20, MyTime.RESULTS.createLink, "createLink()"); 
   
   // Change asset status (Under Construction > Live)
   // Only if available, otherwise this action will be skipped
@@ -412,7 +407,7 @@ $(document).ready(function(){
     catch (e) {
       MyTime.jobComplete(MyTime.CONSTANTS.FAIL, e.message); 
     }
-  }, 30, null, "setAssetStatus()");
+  }, 30, MyTime.RESULTS.setAssetStatusLive, "setAssetStatus()");
   
   /****
     These calls will create load on the server but we cannot measure them because we save the results on the asset
