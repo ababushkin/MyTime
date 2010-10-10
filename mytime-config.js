@@ -26,7 +26,7 @@ MyTime.CONFIG = {
   jsAPIKey: null, /* int: can be found on the details screen of your JS API */
   parentID: "", /* string: assets are created here */
   newLinkID: null, /* int: assets are new linked here */
-  metadataFieldID: null, /* int: some random metadata is saved here */
+  metadataFieldID: null /* int: some random metadata is saved here */
 };
 
 /*
