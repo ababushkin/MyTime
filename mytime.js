@@ -30,8 +30,8 @@ var MyTime = {
   timeoutMaxRetries: 5, /* the amount of retries each action can have before we move on to the next one in the queue */
   timeoutMaxExecutionTime: 123, /* the amount of time (in seconds) an action has to finish executing an action before it is aborted and retried */
   thinkTimeEnabled: false, /* determined whether think time should be used between actions. recommended to turn on if these tests are run with lots of concurrent users. */
-	thinkTimeDefault: 5, /* the default time between actions */
-	debug: false, /* enabling debug will create a consistent sleep time between actions */
+  thinkTimeDefault: 5, /* the default time between actions */
+  debug: false, /* enabling debug will create a consistent sleep time between actions */
   logDebug: true, /* whether or not messages should be logged, helps when testing with sleepTime, this will default to true if debug mode is enabled */
   debugSleepTime: 5, 
   randomize: { /* ensures that the assets and their create locations are randomized, this is especially useful when you have different types of triggers setup in different areas of your site(s) */
